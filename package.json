@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "node --env-file=.env.local --watch src/index.ts",
+    "test": "node --test src/**/*.test.ts",
     "env:setup": "cp .env.example .env.local",
     "local:setup": "npm run env:setup"
   },
@@ -14,5 +15,10 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@mastra/core": "^1.82.0",
+    "nanoid": "^6.0.2",
+    "zod": "^4.6.7"
   }
 }
