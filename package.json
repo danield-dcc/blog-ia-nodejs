@@ -6,7 +6,12 @@
     "dev": "node --env-file=.env.local --watch src/index.ts",
     "test": "node --test src/**/*.test.ts",
     "env:setup": "cp .env.example .env.local",
-    "local:setup": "npm run env:setup"
+    "local:setup": "npm run env:setup && npm run infra:up && npm run db:migrate",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "db:migrate": "node --env-file=.env.local ./node_modules/postgrator-cli/index.js",
+    "db:migrate:undo": "node --env-file=.env.local ./node_modules/postgrator-cli/index.js 0",
+    "db:migrate:to": "node --env-file=.env.local ./node_modules/postgrator-cli/index.js"
   },
   "keywords": [],
   "author": "",
@@ -14,11 +19,14 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
     "typescript": "^7.0.2"
   },
   "dependencies": {
     "@mastra/core": "^1.82.0",
     "nanoid": "^6.0.2",
+    "pg": "^8.23.1",
+    "postgrator-cli": "^10.0.0",
     "zod": "^4.6.7"
   }
 }

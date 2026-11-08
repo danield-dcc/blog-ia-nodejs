@@ -1,19 +1,25 @@
 import http from "node:http";
-import { createDraftPost, type DraftPost } from "./services/create-draft-post.ts";
+import { createDraftPost } from "./services/create-draft-post.ts";
 import { generateBlogPost } from "./mastra/index.ts";
+import { pool } from "./db/pool.ts";
+import { insertPost, listPosts } from "./db/posts.ts";
 
 const { API_PORT, API_HOST, API_PROTOCOL } = process.env;
 
-const posts: DraftPost[] = [];
-
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   const { url, method } = request;
   const paths = url?.split("?").filter(Boolean);
   const path = paths?.at(0) ?? "/";
 
   if (path === "/posts" && method === "GET") {
-    response.writeHead(200, { "Content-Type": "application/json" });
-    return response.end(JSON.stringify({ data: posts }));
+    try {
+      const posts = await listPosts(pool);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      return response.end(JSON.stringify({ data: posts }));
+    } catch {
+      response.writeHead(500, { "Content-Type": "application/json" });
+      return response.end(JSON.stringify({ message: "Failed to list posts" }));
+    }
   }
 
   if (path === "/posts/draft" && method === "POST") {
@@ -32,10 +38,10 @@ const server = http.createServer((request, response) => {
 
         const generated = await generateBlogPost(body.idea);
         const post = createDraftPost(generated);
-        posts.push(post);
+        const saved = await insertPost(pool, post);
 
         response.writeHead(201, { "Content-Type": "application/json" });
-        return response.end(JSON.stringify({ data: post }));
+        return response.end(JSON.stringify({ data: saved }));
       } catch {
         response.writeHead(500, { "Content-Type": "application/json" });
         return response.end(JSON.stringify({ message: "Failed to create post" }));
