@@ -1,22 +1,22 @@
 import http from "node:http";
 
-const PORT = 8080;
+const { API_PORT, API_HOST, API_PROTOCOL } = process.env
+
+const posts: any[] = []
 
 const server = http.createServer((request, response) => {
   const { url, method, headers } = request
-  const path = url.split('?')[0]
-  const params = url.split('?')[1].split('&').map(param => param.split('='))
-  console.log("method", method)
-  console.log("path", path)
-  console.log("params", params)
+  const paths = url?.split('?').filter(Boolean)
+  const path = paths?.at(0) ?? '/'
 
-  if (path === '/products' && method === 'GET') {
+
+  if (path === '/posts' && method === 'GET') {
     response.writeHead(200, { 'Content-Type': 'application/json' })
-    return response.end(JSON.stringify({ data: [{ id: 1, name: "Product 1" }] }))
+    return response.end(JSON.stringify({ data: posts }))
   }
 
   if (path === '/products' && method === 'POST') {
-    const bodyBuffer = []
+    const bodyBuffer: Buffer[] = []
     let body = null
     
     // Armazena o corpo da requisição em um array
@@ -35,6 +35,7 @@ const server = http.createServer((request, response) => {
   response.writeHead(404, { 'Content-Type': 'application/json' })
   return response.end(JSON.stringify({ message: "Not Found" })) 
 })
-server.listen(PORT, () => {
-  console.log(`Servidor em http://localhost:${PORT}`);
+server.listen(API_PORT, () => {
+  console.log(`Servidor em ${API_PROTOCOL}://${API_HOST}:${API_PORT}`);
+  console.log("Press CTRL+C to stop");
 });

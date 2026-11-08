@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "node --watch src/index.ts"
+    "dev": "node --env-file=.env.local --watch src/index.ts",
+    "env:setup": "cp .env.example .env.local",
+    "local:setup": "npm run env:setup"
   },
   "keywords": [],
   "author": "",
