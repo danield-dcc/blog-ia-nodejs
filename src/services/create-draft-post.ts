@@ -10,10 +10,7 @@ export type DraftPost = {
   rejected_at: null;
 };
 
-export function createDraftPost(generated: {
-  title: string;
-  content: string;
-}): DraftPost {
+export function createDraftPost(generated: { title: string; content: string }): DraftPost {
   return {
     id: nanoid(),
     title: generated.title,

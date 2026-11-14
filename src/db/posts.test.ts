@@ -56,7 +56,10 @@ test("listPosts mapeia Date para ISO e mantém null nos timestamps vazios", asyn
   const createdAt = new Date("2026-11-08T15:00:00.000Z");
   const pool = {
     async query(text: string, values?: unknown[]) {
-      assert.match(text, /SELECT id, title, content, created_at, published_at, approved_at, rejected_at/i);
+      assert.match(
+        text,
+        /SELECT id, title, content, created_at, published_at, approved_at, rejected_at/i,
+      );
       assert.match(text, /ORDER BY created_at DESC/i);
       assert.equal(values, undefined);
       return {
