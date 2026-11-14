@@ -104,6 +104,9 @@ export function createApp() {
     post(path: string, handler: AppHandler) {
       route("POST", path, handler);
     },
+    patch(path: string, handler: AppHandler) {
+      route("PATCH", path, handler);
+    },
     listen(port?: number | string, listeningListener?: () => void): Server {
       const server = http.createServer((request, response) => {
         void handle(request, response);

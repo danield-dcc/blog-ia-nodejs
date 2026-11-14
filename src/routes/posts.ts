@@ -1,5 +1,10 @@
 import { pool } from "../db/pool.ts";
-import { findPostById, insertPost, listPosts } from "../db/posts.ts";
+import {
+  approvePost,
+  findPostById,
+  insertPost,
+  listAllPublishedAndApprovedPosts,
+} from "../db/posts.ts";
 import type { App } from "../http/app.ts";
 import { generateBlogPost } from "../mastra/index.ts";
 import { createDraftPost } from "../services/create-draft-post.ts";
@@ -7,7 +12,7 @@ import { createDraftPost } from "../services/create-draft-post.ts";
 export function registerPostRoutes(app: App) {
   app.get("/posts", async (_request, response) => {
     try {
-      const posts = await listPosts(pool);
+      const posts = await listAllPublishedAndApprovedPosts(pool);
       response.writeHead(200, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ data: posts }));
     } catch {
@@ -24,6 +29,24 @@ export function registerPostRoutes(app: App) {
     } catch {
       response.writeHead(500, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ message: "Failed to list posts" }));
+    }
+  });
+
+  app.patch("/posts/:id/approve", async (request, response) => {
+    try {
+      const post = await approvePost(pool, request.params.id);
+
+      if (!post) {
+        response.writeHead(404, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ message: "Post not found" }));
+        return;
+      }
+
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ data: post }));
+    } catch {
+      response.writeHead(500, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ message: "Failed to approve post" }));
     }
   });
 

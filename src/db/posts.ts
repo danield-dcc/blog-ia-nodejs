@@ -48,10 +48,13 @@ function mapRow(row: PostRow): Post {
   };
 }
 
-export async function listPosts(db: Queryable): Promise<Post[]> {
+export async function listAllPublishedAndApprovedPosts(db: Queryable): Promise<Post[]> {
   const result = await db.query(
     `SELECT id, title, content, created_at, published_at, approved_at, rejected_at
 FROM posts
+WHERE published_at <= NOW()
+AND approved_at IS NOT NULL
+AND rejected_at IS NULL
 ORDER BY created_at DESC`,
   );
 
@@ -67,6 +70,22 @@ WHERE id = $1`,
   );
 
   return mapRow(result.rows[0] as PostRow);
+}
+
+export async function approvePost(db: Queryable, id: string): Promise<Post | null> {
+  const approvedAt = new Date().toISOString();
+  const result = await db.query(
+    `UPDATE posts
+SET approved_at = $2, published_at = $2
+WHERE id = $1
+RETURNING id, title, content, created_at, published_at, approved_at, rejected_at`,
+    [id, approvedAt],
+  );
+
+  const row = result.rows[0] as PostRow | undefined;
+  if (!row) return null;
+
+  return mapRow(row);
 }
 
 export async function insertPost(db: Queryable, post: DraftPost): Promise<Post> {
