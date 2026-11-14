@@ -2,7 +2,7 @@ import http from "node:http";
 import { createDraftPost } from "./services/create-draft-post.ts";
 import { generateBlogPost } from "./mastra/index.ts";
 import { pool } from "./db/pool.ts";
-import { insertPost, listPosts } from "./db/posts.ts";
+import { insertPost, listPosts, findPostById } from "./db/posts.ts";
 
 const { API_PORT, API_HOST, API_PROTOCOL } = process.env;
 
@@ -16,6 +16,19 @@ const server = http.createServer(async (request, response) => {
       const posts = await listPosts(pool);
       response.writeHead(200, { "Content-Type": "application/json" });
       return response.end(JSON.stringify({ data: posts }));
+    } catch {
+      response.writeHead(500, { "Content-Type": "application/json" });
+      return response.end(JSON.stringify({ message: "Failed to list posts" }));
+    }
+  }
+
+  const postById = path.match(/^\/posts\/(?<id>[A-Za-z0-9_-]+)$/);
+
+  if (postById?.groups?.id && method === "GET") {
+    try {
+      const post = await findPostById(pool, postById.groups.id);
+      response.writeHead(200, { "Content-Type": "application/json" });
+      return response.end(JSON.stringify({ data: post }));
     } catch {
       response.writeHead(500, { "Content-Type": "application/json" });
       return response.end(JSON.stringify({ message: "Failed to list posts" }));

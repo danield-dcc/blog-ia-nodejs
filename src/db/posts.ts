@@ -58,6 +58,17 @@ ORDER BY created_at DESC`,
   return (result.rows as PostRow[]).map(mapRow);
 }
 
+export async function findPostById(db: Queryable, id: string): Promise<Post> {
+  const result = await db.query(
+    `SELECT id, title, content, created_at, published_at, approved_at, rejected_at
+FROM posts
+WHERE id = $1`,
+    [id],
+  );
+
+  return mapRow(result.rows[0] as PostRow);
+}
+
 export async function insertPost(db: Queryable, post: DraftPost): Promise<Post> {
   const result = await db.query(
     `INSERT INTO posts (id, title, content, created_at, published_at, approved_at, rejected_at)
