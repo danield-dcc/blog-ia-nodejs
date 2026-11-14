@@ -11,10 +11,7 @@ export type Post = {
 };
 
 export type Queryable = {
-  query: (
-    text: string,
-    values?: unknown[],
-  ) => Promise<{ rows: unknown[] }>;
+  query: (text: string, values?: unknown[]) => Promise<{ rows: unknown[] }>;
 };
 
 type PostRow = {
@@ -61,10 +58,7 @@ ORDER BY created_at DESC`,
   return (result.rows as PostRow[]).map(mapRow);
 }
 
-export async function insertPost(
-  db: Queryable,
-  post: DraftPost,
-): Promise<Post> {
+export async function insertPost(db: Queryable, post: DraftPost): Promise<Post> {
   const result = await db.query(
     `INSERT INTO posts (id, title, content, created_at, published_at, approved_at, rejected_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
