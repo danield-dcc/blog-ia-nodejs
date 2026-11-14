@@ -4,6 +4,7 @@ import {
   findPostById,
   insertPost,
   listAllPublishedAndApprovedPosts,
+  rejectPost,
 } from "../db/posts.ts";
 import type { App } from "../http/app.ts";
 import { generateBlogPost } from "../mastra/index.ts";
@@ -47,6 +48,24 @@ export function registerPostRoutes(app: App) {
     } catch {
       response.writeHead(500, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ message: "Failed to approve post" }));
+    }
+  });
+
+  app.delete("/posts/:id/reject", async (request, response) => {
+    try {
+      const post = await rejectPost(pool, request.params.id);
+
+      if (!post) {
+        response.writeHead(404, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ message: "Post not found" }));
+        return;
+      }
+
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ data: post }));
+    } catch {
+      response.writeHead(500, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ message: "Failed to reject post" }));
     }
   });
 

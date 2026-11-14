@@ -107,6 +107,9 @@ export function createApp() {
     patch(path: string, handler: AppHandler) {
       route("PATCH", path, handler);
     },
+    delete(path: string, handler: AppHandler) {
+      route("DELETE", path, handler);
+    },
     listen(port?: number | string, listeningListener?: () => void): Server {
       const server = http.createServer((request, response) => {
         void handle(request, response);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { approvePost, insertPost, listAllPublishedAndApprovedPosts } from "./posts.ts";
+import { approvePost, insertPost, listAllPublishedAndApprovedPosts, rejectPost } from "./posts.ts";
 import type { DraftPost } from "../services/create-draft-post.ts";
 
 const draft: DraftPost = {
@@ -149,6 +149,55 @@ test("approvePost grava o mesmo instante em approved_at e published_at", async (
   assert.equal(result?.approved_at, "2026-11-14T14:30:00.000Z");
   assert.equal(result?.published_at, "2026-11-14T14:30:00.000Z");
   assert.equal(result?.rejected_at, null);
+});
+
+test("rejectPost grava o instante atual em rejected_at", async () => {
+  const calls: Array<{ text: string; values?: unknown[] }> = [];
+  const rejectedAt = new Date("2026-11-14T15:00:00.000Z");
+
+  const pool = {
+    async query(text: string, values?: unknown[]) {
+      calls.push({ text, values });
+      return {
+        rows: [
+          {
+            id: draft.id,
+            title: draft.title,
+            content: draft.content,
+            created_at: new Date(draft.created_at),
+            published_at: null,
+            approved_at: null,
+            rejected_at: rejectedAt,
+          },
+        ],
+      };
+    },
+  };
+
+  const result = await rejectPost(pool, draft.id);
+
+  assert.equal(calls.length, 1);
+  assert.match(calls[0]!.text, /UPDATE posts/i);
+  assert.match(calls[0]!.text, /SET rejected_at = \$2/i);
+  assert.match(calls[0]!.text, /WHERE id = \$1/i);
+  assert.equal(calls[0]!.values?.[0], draft.id);
+  assert.equal(typeof calls[0]!.values?.[1], "string");
+  assert.equal(Number.isNaN(Date.parse(String(calls[0]!.values?.[1]))), false);
+  assert.equal(result?.rejected_at, "2026-11-14T15:00:00.000Z");
+  assert.equal(result?.approved_at, null);
+  assert.equal(result?.published_at, null);
+});
+
+test("rejectPost devolve null quando o post não existe", async () => {
+  const pool = {
+    async query() {
+      return { rows: [] };
+    },
+  };
+
+  const result = await rejectPost(pool, "missing");
+
+  assert.equal(result, null);
 });
 
 test("approvePost devolve null quando o post não existe", async () => {

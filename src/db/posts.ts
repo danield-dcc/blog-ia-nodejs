@@ -76,10 +76,26 @@ export async function approvePost(db: Queryable, id: string): Promise<Post | nul
   const approvedAt = new Date().toISOString();
   const result = await db.query(
     `UPDATE posts
-SET approved_at = $2, published_at = $2
+SET approved_at = $2, published_at = $2, rejected_at = NULL
 WHERE id = $1
 RETURNING id, title, content, created_at, published_at, approved_at, rejected_at`,
     [id, approvedAt],
+  );
+
+  const row = result.rows[0] as PostRow | undefined;
+  if (!row) return null;
+
+  return mapRow(row);
+}
+
+export async function rejectPost(db: Queryable, id: string): Promise<Post | null> {
+  const rejectedAt = new Date().toISOString();
+  const result = await db.query(
+    `UPDATE posts
+SET rejected_at = $2, published_at = NULL, approved_at = NULL
+WHERE id = $1
+RETURNING id, title, content, created_at, published_at, approved_at, rejected_at`,
+    [id, rejectedAt],
   );
 
   const row = result.rows[0] as PostRow | undefined;
